@@ -1,0 +1,46 @@
+spring:
+  application:
+    name: user_service
+
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/user-service_db
+    username: postgres
+    password: postgres
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  data:
+    jdbc:
+      dialect: postgresql
+
+
+  # Mail Properties
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${SUPPORT_EMAIL}
+    password: ${APP_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+server:
+  port: 8085
+  servlet:
+    context-path: /api
+
+
+# JWT Configuration
+security:
+  jwt:
+    secret-key: ${JWT_SECRET_KEY}
+    expiration-time: 3600000
+
+
+spring.config.import: optional:file:.env[.properties]
