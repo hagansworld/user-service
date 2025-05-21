@@ -74,7 +74,6 @@ public class UserMapper {
     /**
      * Map registerDto to User Entity for creating new users
      */
-
     public User toUser(RegisterRequestDto dto){
         return User.builder()
                 .username(dto.getUsername())
