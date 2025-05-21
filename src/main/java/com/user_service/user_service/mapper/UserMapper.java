@@ -83,4 +83,16 @@ public class UserMapper {
                 .enabled(false)
                 .build();
     }
+
+
+    /**
+     * MapVerificationCodeResponseDto
+     */
+
+    public ResendVerificationCodeResponseDto toResendVerificationCodeResponseDto(boolean sent, String message){
+        return ResendVerificationCodeResponseDto.builder()
+                .sent(sent)
+                .message(message)
+                .build();
+    }
 }

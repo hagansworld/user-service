@@ -45,6 +45,18 @@ public class GlobalExceptionHandler {
         return  new ResponseEntity<>(errorResponse,HttpStatus.CONFLICT);
     }
 
+    @ExceptionHandler(UserAlreadyExitsException.class)
+    public ResponseEntity<ResponseDto>handleUserAlreadyExistsException(UserAlreadyExitsException ex, WebRequest request){
+        ResponseDto errorResponse = ResponseDto.builder()
+                .statusCode(HttpStatus.NO_CONTENT.value())
+                .message(ex.getMessage())
+                .message(ex.getMessage())
+                .timeRequested(LocalDateTime.now())
+                .build();
+
+        return new ResponseEntity<>(errorResponse,HttpStatus.CONFLICT);
+    }
+
 
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<ResponseDto>handleUserNotFoundException(UserNotFoundException ex, WebRequest request){
