@@ -12,7 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("auth/v1")
+@RequestMapping("/auth/v1/users/authenticate")
 @RequiredArgsConstructor
 public class AuthController {
     private final AuthService authService;
@@ -23,7 +23,7 @@ public class AuthController {
                                                    ){
         ResponseDto responseDto = authService.registerUser(registerRequestDto,request);
 
-        return new ResponseEntity<>(responseDto, HttpStatus.valueOf(responseDto.getStatusCode()));
+        return ResponseEntity.status(responseDto.getStatusCode()).body(responseDto);
     }
 
 
@@ -33,7 +33,7 @@ public class AuthController {
                                                 HttpServletRequest request){
         ResponseDto responseDto = authService.loginUser(loginRequestDto,request);
 
-        return new ResponseEntity<>(responseDto,HttpStatus.valueOf(responseDto.getStatusCode()));
+        return ResponseEntity.status(responseDto.getStatusCode()).body(responseDto);
     }
 
 
@@ -42,7 +42,7 @@ public class AuthController {
                                                  HttpServletRequest request){
         ResponseDto responseDto = authService.verifyUser(verifyEmailRequestDto, request);
 
-        return  new ResponseEntity<>(responseDto, HttpStatus.valueOf(responseDto.getStatusCode()));
+        return ResponseEntity.status(responseDto.getStatusCode()).body(responseDto);
 
     }
 
@@ -51,7 +51,7 @@ public class AuthController {
                                                              HttpServletRequest request){
         ResponseDto responseDto = authService.ResendVerificationCode(resendVerificationCodeRequestDto , request);
 
-        return new ResponseEntity<>(responseDto, HttpStatus.valueOf(responseDto.getStatusCode()));
+        return ResponseEntity.status(responseDto.getStatusCode()).body(responseDto);
     }
 
 

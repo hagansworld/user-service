@@ -3,6 +3,7 @@ package com.user_service.user_service.security;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -24,19 +25,52 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     /**
+     *
+     * This array is a list of URLs that should not be blocked by Spring Security.
+     * It makes sure things like Swagger UI, static files, and actuator endpoints
+     * stay publicly accessible.
+     */
+
+    private static final String[] SWAGGER_ENDPOINTS = {
+            "/", HttpMethod.GET.name(),
+            "/actuator/**",
+            "/swagger-ui/**",
+            "/configuration/**",
+            "/swagger-resources/**",
+            "/swagger-ui.html/**",
+            "/api-docs/**",
+            "/webjars/**",
+            "/assets/**",
+            "/static/**"
+    };
+
+
+
+    /**
      * Configures the security filter chain for the application.
      *
      * @param http The HttpSecurity object used to configure the security rules.
      * @return A SecurityFilterChain object representing the configured security rules.
      * @throws Exception If an error occurs during configuration.
      */
+
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**").permitAll()
-                        .anyRequest().authenticated()
+                        .requestMatchers(
+                                "/auth/**",
+                                "/users/**"
+//                                "/auth/v1/users/authenticate",
+//                                "/v1/users",
+//                                "/swagger-ui/**",
+//                                "/v3/api-docs/**"
+                        )
+                        .permitAll()
+                        .anyRequest()
+                        .authenticated()
                 )
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)

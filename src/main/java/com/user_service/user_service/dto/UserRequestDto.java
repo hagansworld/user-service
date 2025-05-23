@@ -19,4 +19,6 @@ public class UserRequestDto {
     private String password;
     private List<String> roles;
     private Boolean enabled;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }

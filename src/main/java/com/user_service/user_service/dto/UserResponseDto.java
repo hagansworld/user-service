@@ -20,6 +20,6 @@ public class UserResponseDto {
     private String email;
     private List<String> roles;
     private boolean enabled;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    private LocalDateTime createdAt = LocalDateTime.now();
+    private LocalDateTime updatedAt = LocalDateTime.now();
 }

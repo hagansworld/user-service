@@ -1,16 +1,16 @@
 package com.user_service.user_service.dto;
 
-import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Builder
+import java.util.List;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ResendVerificationCodeRequestDto {
-    @NotBlank(message = "Email is required")
-    private String email;
+@Builder
+public class AssignRolesRequestDto {
+    private List<String> roles;
 }

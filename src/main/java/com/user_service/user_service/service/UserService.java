@@ -1,10 +1,7 @@
 package com.user_service.user_service.service;
 
 
-import com.user_service.user_service.dto.ResponseDto;
-import com.user_service.user_service.dto.UserDto;
-import com.user_service.user_service.dto.UserRequestDto;
-import com.user_service.user_service.dto.UserResponseDto;
+import com.user_service.user_service.dto.*;
 import com.user_service.user_service.entity.Role;
 import com.user_service.user_service.entity.User;
 import com.user_service.user_service.enums.UserRole;
@@ -17,6 +14,7 @@ import com.user_service.user_service.repository.UserRepository;
 import com.user_service.user_service.response.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -31,13 +29,13 @@ public class UserService {
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
 
+
     /**
      *
      * @param userRequestDto
      * @param request
      * @return
      */
-
     public ResponseDto createUser(UserRequestDto userRequestDto, HttpServletRequest request){
         try{
             // Check if email or username already exists
@@ -315,7 +313,7 @@ public class UserService {
      * @return
      */
     public ResponseDto searchUsers(String username, String email, HttpServletRequest request){
-
+        try{
         List<User>users;
 
         if (username != null && email !=null){
@@ -337,8 +335,33 @@ public class UserService {
                 "Search result",
                 request.getRequestURI()
         );
+        }catch (UserNotFoundException e){
+            throw e;
+        }catch (Exception e){
+            throw  new RuntimeException("Failed to search users", e);
+        }
     }
 
+
+
+//    public ResponseDto assignRoles(AssignRolesRequestDto assignRolesRequestDto, UUID id, HttpServletRequest request){
+//
+//        try{
+//            // find user by id
+//            User user = userRepository.findById(id).orElseThrow(()->  new UsernameNotFoundException("User not found" + id));
+//
+//
+//
+//           return null;
+//
+//
+//        } catch (UserNotFoundException e) {
+//            throw e;
+//        } catch (Exception e){
+//            throw new RuntimeException("Failed to assign user with ", e);
+//        }
+//    }
+//
 
 
 

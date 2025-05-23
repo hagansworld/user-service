@@ -46,21 +46,21 @@ public class UserMapper {
     /**
      * User to Dto {For admins roles and profiles}
      */
-    public UserDto toUserDto(User user){
-        return UserDto.builder()
-                .id(user.getId())
-                .username(user.getUsername())
-                .email(user.getEmail())
-                .roles(user.getRoles()
-                        .stream()
-                        .map(Role::getAuthority)
-                        .collect(Collectors.toList())
-                )
-                .enabled(user.isEnabled())
-                .createdAt(user.getCreatedAt())
-                .updatedAt(user.getUpdatedAt())
-                .build();
-    }
+//    public UserDto toUserDto(User user){
+//        return UserDto.builder()
+//                .id(user.getId())
+//                .username(user.getUsername())
+//                .email(user.getEmail())
+//                .roles(user.getRoles()
+//                        .stream()
+//                        .map(Role::getAuthority)
+//                        .collect(Collectors.toList())
+//                )
+//                .enabled(user.isEnabled())
+//                .createdAt(user.getCreatedAt())
+//                .updatedAt(user.getUpdatedAt())
+//                .build();
+//    }
 
     /**
      * MapVerify EmailResponse
@@ -113,7 +113,6 @@ public class UserMapper {
                 .enabled(user.isEnabled())
                 .createdAt(user.getCreatedAt())
                 .updatedAt(user.getUpdatedAt())
-
                 .build();
 
     }
@@ -128,6 +127,10 @@ public class UserMapper {
                 .email(dto.getEmail())
                 .password(dto.getPassword())
                 .enabled(false)
+               .createdAt(dto.getCreatedAt())
+               .updatedAt(dto.getUpdatedAt())
                 .build();
     }
+
+
 }
