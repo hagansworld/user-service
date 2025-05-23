@@ -88,11 +88,46 @@ public class UserMapper {
     /**
      * MapVerificationCodeResponseDto
      */
-
     public ResendVerificationCodeResponseDto toResendVerificationCodeResponseDto(boolean sent, String message){
         return ResendVerificationCodeResponseDto.builder()
                 .sent(sent)
                 .message(message)
+                .build();
+    }
+
+    /**
+     *
+     * Map User to UserResponse
+     */
+    public UserResponseDto touserResponseDto(User user){
+        return UserResponseDto.builder()
+                .id(user.getId())
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .roles(
+                        user.getRoles()
+                                .stream()
+                                .map(Role::getAuthority)
+                                .collect(Collectors.toList())
+                )
+                .enabled(user.isEnabled())
+                .createdAt(user.getCreatedAt())
+                .updatedAt(user.getUpdatedAt())
+
+                .build();
+
+    }
+
+    /**
+     * Map UserRequest toUser ( for creating and saving users to the database)
+     */
+
+    public User toUser(UserRequestDto dto){
+       return User.builder()
+                .username(dto.getUsername())
+                .email(dto.getEmail())
+                .password(dto.getPassword())
+                .enabled(false)
                 .build();
     }
 }

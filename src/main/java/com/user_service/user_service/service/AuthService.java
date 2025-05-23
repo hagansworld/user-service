@@ -108,7 +108,7 @@ public class AuthService {
             throw  e;
         } catch (Exception e){
             log.error("An error occurred during registration");
-            throw new RuntimeException("An error occurred during registration");
+            throw new RuntimeException("An error occurred during registration",e);
         }
 
     }
@@ -163,7 +163,7 @@ public class AuthService {
            throw  e;
        } catch (Exception e){
            log.error("An error occurred during sign in ");
-           throw new RuntimeException("An error occurred during login");
+           throw new RuntimeException("An error occurred during login",e);
        }
 
 
@@ -265,7 +265,7 @@ public class AuthService {
            // If user is already verified, do not resend the code
            User user = optionalUser.get();
            if (user.isEnabled()) {
-               throw new UserNotFoundException("User not found");
+               throw new UserNotFoundException("User already verified");
            }
 
            // Generate a new verification code and set its expiration
@@ -363,7 +363,6 @@ public class AuthService {
         </html>
         """.formatted(verificationCode, LocalDateTime.now().getYear());
         emailService.sendVerificationEmail(user.getEmail(), subject , htmlMessage);
-
     }
 
     /**
