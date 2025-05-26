@@ -14,13 +14,13 @@ import com.user_service.user_service.repository.UserRepository;
 import com.user_service.user_service.response.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserService {
@@ -31,16 +31,15 @@ public class UserService {
 
 
     /**
-     *
      * @param userRequestDto
      * @param request
      * @return
      */
-    public ResponseDto createUser(UserRequestDto userRequestDto, HttpServletRequest request){
-        try{
+    public ResponseDto createUser(UserRequestDto userRequestDto, HttpServletRequest request) {
+        try {
             // Check if email or username already exists
             if (userRepository.existsByEmail(userRequestDto.getEmail()) ||
-                    userRepository.existsByUsername(userRequestDto.getUsername())){
+                    userRepository.existsByUsername(userRequestDto.getUsername())) {
                 return ApiResponse.buildResponse(
                         null,
                         400,
@@ -57,11 +56,11 @@ public class UserService {
 
             // Assigned a roles if provided , else assign Default role(ROLE_USER)
             List<Role> roles = new ArrayList<>();
-            if (userRequestDto.getRoles() != null && !userRequestDto.getRoles().isEmpty()){
+            if (userRequestDto.getRoles() != null && !userRequestDto.getRoles().isEmpty()) {
                 roles = roleRepository.findByRoleIn(userRequestDto.getRoles());
-            }else{
+            } else {
                 roles.add(roleRepository.findByRole(UserRole.USER)
-                        .orElseThrow( ()-> new RuntimeException("Default role not found")));
+                        .orElseThrow(() -> new RuntimeException("Default role not found")));
             }
             newUser.setRoles(roles);
 
@@ -80,7 +79,7 @@ public class UserService {
                     request.getRequestURI()
             );
 
-        }catch (UserAlreadyExitsException  | EmailAlreadyExistsException e){
+        } catch (UserAlreadyExitsException | EmailAlreadyExistsException e) {
             throw e;
         } catch (Exception e) {
             throw new RuntimeException("An expected error occurred ", e);
@@ -88,12 +87,11 @@ public class UserService {
     }
 
     /**
-     *
      * @param request
      * @return
      */
-    public ResponseDto getAllUsers(HttpServletRequest request){
-        try{
+    public ResponseDto getAllUsers(HttpServletRequest request) {
+        try {
             List<User> users = userRepository.findAll();
 
             List<UserResponseDto> responseDtoList = users.stream()
@@ -113,20 +111,19 @@ public class UserService {
     }
 
     /**
-     *
      * @param id
      * @param request
      * @return
      */
 
-    public ResponseDto getUserByID(UUID id,HttpServletRequest request){
-        try{
+    public ResponseDto getUserByID(UUID id, HttpServletRequest request) {
+        try {
 
             // Fetch user from DB using ID
             Optional<User> optionalUser = userRepository.findById(id);
 
             // If user not found, return 404 response
-            if (optionalUser.isEmpty()){
+            if (optionalUser.isEmpty()) {
                 throw new UserNotFoundException("User with " + id + " not found");
             }
 
@@ -143,21 +140,20 @@ public class UserService {
 
         } catch (UserNotFoundException e) {
             throw e;
-        } catch (Exception e){
-            throw  new RuntimeException("Failed to retrieve user by Id", e);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to retrieve user by Id", e);
         }
     }
 
     /**
-     *
      * @param id
      * @param userRequestDto
      * @param request
      * @return
      */
-    public ResponseDto updateUser(UUID id, UserRequestDto userRequestDto, HttpServletRequest request){
+    public ResponseDto updateUser(UUID id, UserRequestDto userRequestDto, HttpServletRequest request) {
 
-        try{
+        try {
             // Check if user exists
             Optional<User> optionalUser = userRepository.findById(id);
 
@@ -165,57 +161,56 @@ public class UserService {
                 throw new UserNotFoundException("User with " + id + " not found");
             }
 
-                // Get existing user
-                User user = optionalUser.get();
+            // Get existing user
+            User user = optionalUser.get();
 
-                // use the existing user to update it
-                user.setUsername(userRequestDto.getUsername());
-                user.setEmail(userRequestDto.getEmail());
-                user.setPassword(userRequestDto.getPassword());
-                user.setEnabled(userRequestDto.getEnabled());
+            // use the existing user to update it
+            user.setUsername(userRequestDto.getUsername());
+            user.setEmail(userRequestDto.getEmail());
+            user.setPassword(userRequestDto.getPassword());
+            user.setEnabled(userRequestDto.getEnabled());
 
 
-                // Update roles if provided
-                if (userRequestDto.getRoles() != null && !userRequestDto.getRoles().isEmpty()){
-                    List<Role> roles = roleRepository.findByRoleIn(userRequestDto.getRoles());
-                    user.setRoles(roles);
-                }
+            // Update roles if provided
+            if (userRequestDto.getRoles() != null && !userRequestDto.getRoles().isEmpty()) {
+                List<Role> roles = roleRepository.findByRoleIn(userRequestDto.getRoles());
+                user.setRoles(roles);
+            }
 
-                // Step 5: Save updated user
-                User savedUser = userRepository.save(user);
+            // Step 5: Save updated user
+            User savedUser = userRepository.save(user);
 
-                // Convert User entity to UserResponseDto
-            UserResponseDto userResponseDto  = userMapper.touserResponseDto(savedUser);
+            // Convert User entity to UserResponseDto
+            UserResponseDto userResponseDto = userMapper.touserResponseDto(savedUser);
 
-                return ApiResponse.buildResponse(
-                        userResponseDto,
-                        200,
-                        "user updated successfully",
-                        request.getRequestURI()
-                );
+            return ApiResponse.buildResponse(
+                    userResponseDto,
+                    200,
+                    "user updated successfully",
+                    request.getRequestURI()
+            );
 
-        }catch (UserNotFoundException e){
+        } catch (UserNotFoundException e) {
             throw e;
-        }catch (Exception e){
-            throw new RuntimeException("Failed to update user by id " ,e);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to update user by id ", e);
         }
 
 
     }
 
     /**
-     *
      * @param id
      * @param userRequestDto
      * @param request
      * @return
      */
-    public ResponseDto patchUser(UUID id, UserRequestDto userRequestDto, HttpServletRequest request){
-        try{
-                 //  Check if user exists
+    public ResponseDto patchUser(UUID id, UserRequestDto userRequestDto, HttpServletRequest request) {
+        try {
+            //  Check if user exists
             Optional<User> optionalUser = userRepository.findById(id);
 
-            if (optionalUser.isEmpty()){
+            if (optionalUser.isEmpty()) {
                 throw new UserNotFoundException("User with " + id + " not found");
             }
 
@@ -225,28 +220,28 @@ public class UserService {
             // Update fields only if provided (not null)
 
             // Update username if present
-            if (userRequestDto.getUsername() != null){
+            if (userRequestDto.getUsername() != null) {
                 user.setUsername(userRequestDto.getUsername());
             }
 
             // Update email if present
-            if (userRequestDto.getEmail() !=null){
+            if (userRequestDto.getEmail() != null) {
                 user.setEmail(userRequestDto.getEmail());
             }
 
             // Update password if present
-            if (userRequestDto.getPassword() !=null){
+            if (userRequestDto.getPassword() != null) {
                 user.setPassword(passwordEncoder.encode(userRequestDto.getPassword()));
             }
 
             // Update roles if present
-            if (userRequestDto.getRoles() !=null && !userRequestDto.getRoles().isEmpty()){
+            if (userRequestDto.getRoles() != null && !userRequestDto.getRoles().isEmpty()) {
                 user.setRoles(roleRepository.findByRoleIn(userRequestDto.getRoles()));
             }
 
 
             // Update enabled only if explicitly sent (true or false)
-            if (userRequestDto.getEnabled() !=null) {
+            if (userRequestDto.getEnabled() != null) {
                 user.setEnabled(userRequestDto.getEnabled());
             }
 
@@ -264,27 +259,26 @@ public class UserService {
                     request.getRequestURI()
             );
 
-    }catch(UserNotFoundException e){
-            throw  e;
-        }catch (Exception e){
-            throw  new RuntimeException("Failed to patch user by id ", e);
+        } catch (UserNotFoundException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to patch user by id ", e);
         }
 
     }
 
     /**
-     *
      * @param id
      * @param request
      * @return
      */
-    public ResponseDto deleteUser(UUID id, HttpServletRequest request){
-        try{
+    public ResponseDto deleteUser(UUID id, HttpServletRequest request) {
+        try {
             //Check if the user exists.
             Optional<User> optionalUser = userRepository.findById(id);
 
-            if ( optionalUser.isEmpty()){
-                throw  new UserNotFoundException("User not found with id " + id);
+            if (optionalUser.isEmpty()) {
+                throw new UserNotFoundException("User not found with id " + id);
             }
 
             // Delete the user from the repository.
@@ -293,76 +287,123 @@ public class UserService {
             return ApiResponse.buildResponse(
                     null,
                     200,
-                    "user deleted succesfully",
+                    "user deleted successfully",
                     request.getRequestURI()
             );
 
-        }catch (UserNotFoundException e){
-            throw  e;
-        }catch (Exception e){
+        } catch (UserNotFoundException e) {
+            throw e;
+        } catch (Exception e) {
             throw new RuntimeException("Failed to delete user by id", e);
         }
 
     }
 
     /**
-     *
      * @param username
      * @param email
      * @param request
      * @return
      */
-    public ResponseDto searchUsers(String username, String email, HttpServletRequest request){
-        try{
-        List<User>users;
+    public ResponseDto searchUsers(String username, String email, HttpServletRequest request) {
+        try {
 
-        if (username != null && email !=null){
-            users =userRepository.findUserByUsernameContainingIgnoreCaseAndEmailContainingIgnoreCase(username,email);
-        }else if (username !=null ){
-            users = userRepository.findByUsernameContainingIgnoreCase(username);
-        }else  if (email != null){
-            users = userRepository.findByEmailContainingIgnoreCase(email);
-        }else {
-            users = userRepository.findAll();
-        }
-        List<UserResponseDto> result = users.stream()
-                .map(userMapper::touserResponseDto)
-                .toList();
+            List<User> users;
 
-        return ApiResponse.buildResponse(
-                result,
-                200,
-                "Search result",
-                request.getRequestURI()
-        );
-        }catch (UserNotFoundException e){
+            if (username != null && email != null) {
+                users = userRepository.findUserByUsernameContainingIgnoreCaseAndEmailContainingIgnoreCase(username, email);
+            } else if (username != null) {
+                users = userRepository.findByUsernameContainingIgnoreCase(username);
+            } else if (email != null) {
+                users = userRepository.findByEmailContainingIgnoreCase(email);
+            } else {
+                users = userRepository.findAll();
+            }
+
+            if (users.isEmpty()) {
+                throw new UserNotFoundException("No users found with the given criteria");
+            }
+
+
+            List<UserResponseDto> result = users.stream()
+                    .map(userMapper::touserResponseDto)
+                    .toList();
+
+            return ApiResponse.buildResponse(
+                    result,
+                    200,
+                    "Search result",
+                    request.getRequestURI()
+            );
+        } catch (UserNotFoundException e) {
             throw e;
-        }catch (Exception e){
-            throw  new RuntimeException("Failed to search users", e);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to search users", e);
         }
     }
 
 
+    /**
+     *
+     * @param id
+     * @param requestDto
+     * @param request
+     * @return
+     */
 
-//    public ResponseDto assignRoles(AssignRolesRequestDto assignRolesRequestDto, UUID id, HttpServletRequest request){
-//
-//        try{
-//            // find user by id
-//            User user = userRepository.findById(id).orElseThrow(()->  new UsernameNotFoundException("User not found" + id));
-//
-//
-//
-//           return null;
-//
-//
-//        } catch (UserNotFoundException e) {
-//            throw e;
-//        } catch (Exception e){
-//            throw new RuntimeException("Failed to assign user with ", e);
-//        }
-//    }
-//
+    public ResponseDto assignRolesToUser(UUID id, AssignRolesRequestDto requestDto, HttpServletRequest request) {
+        try {
+            // check if the user exist
+            User user = userRepository.findById(id)
+                    .orElseThrow(() -> new UserNotFoundException("User not found with id " + id));
+            log.info("users >>> {}", user.getId());
 
+            // Convert the list of roles in the request to UserRole enums
+            List<UserRole> rolesToAssign = UserMapper.mapRoles(requestDto.getRoles());
+
+            // Loop over the roles to assign
+            for (UserRole role : rolesToAssign) {
+                // Check if the role already exists in the user's roles
+                boolean hasRole = user.getRoles()
+                        .stream()
+                        .anyMatch(userRole -> userRole.getRole() == role);
+
+                if (hasRole) {
+                    // If the role is already assigned to the user, skip it or throw an exception if needed
+//                    continue;
+                    throw new UserAlreadyExitsException("Role already assigned to " + user.getUsername());
+                }
+
+                // Find the role entity from the database
+                Optional<Role> roleEntityOptional = roleRepository.findByRole(role);
+
+                if (roleEntityOptional.isEmpty()) {
+                    throw new UserNotFoundException(role + " role not found");
+                }
+
+                // Add the role to the user's roles
+                Role roleEntity = roleEntityOptional.get();
+                user.getRoles().add(roleEntity);
+            }
+
+            // Save the updated user
+            User savedUser = userRepository.save(user);
+
+            // Map the saved user to a response DTO (for returning the response)
+            UserResponseDto userResponseDto = userMapper.touserResponseDto(savedUser);
+            return ApiResponse.buildResponse(
+                    userResponseDto,
+                    200,
+                    "Roles assigned successfully",
+                    request.getRequestURI()
+            );
+
+        } catch (UserNotFoundException | IllegalArgumentException | UserAlreadyExitsException e) {
+            throw e; // Propagate known exceptions
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to assign roles to user", e);
+        }
+    }
 
 
 }

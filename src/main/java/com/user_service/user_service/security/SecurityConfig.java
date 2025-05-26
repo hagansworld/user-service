@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.configuration.EnableGlobalAuthentication;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -31,18 +32,15 @@ public class SecurityConfig {
      * stay publicly accessible.
      */
 
-    private static final String[] SWAGGER_ENDPOINTS = {
-            "/", HttpMethod.GET.name(),
-            "/actuator/**",
-            "/swagger-ui/**",
-            "/configuration/**",
-            "/swagger-resources/**",
-            "/swagger-ui.html/**",
-            "/api-docs/**",
-            "/webjars/**",
-            "/assets/**",
-            "/static/**"
-    };
+//    private static final String[] SWAGGER_ENDPOINTS = {
+//            "/v3/api-docs/**",
+//            "/swagger-ui/**",
+//            "/swagger-ui.html",
+//            "/swagger-resources/**",
+//            "/configuration/**",
+//            "/webjars/**",
+//            "/actuator/**"
+//    };
 
 
 
@@ -62,13 +60,12 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/auth/**",
-                                "/users/**"
-//                                "/auth/v1/users/authenticate",
-//                                "/v1/users",
-//                                "/swagger-ui/**",
-//                                "/v3/api-docs/**"
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html"
                         )
                         .permitAll()
+                        .requestMatchers( "/users/**").hasRole("ADMIN") // Restrict access to ADMIN role
                         .anyRequest()
                         .authenticated()
                 )

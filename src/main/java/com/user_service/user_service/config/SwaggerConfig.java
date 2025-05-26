@@ -10,33 +10,42 @@ import io.swagger.v3.oas.models.security.SecurityScheme;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-
 /**
- * @auther Isaac Hagan
- * @description configurations for swagger implementation
- * @createdAt  23rd May 2025.
+ * Swagger OpenAPI documentation configuration for the User Service.
+ * Includes JWT Bearer token authentication setup.
+ *
+ * @author Isaac Hagan
+ * @since 23rd May 2025
  */
 @Configuration
 public class SwaggerConfig {
 
-    private SecurityScheme createAPIKeyScheme() {
-        return new SecurityScheme().type(SecurityScheme.Type.HTTP)
+    private static final String SECURITY_SCHEME_NAME = "Bearer Authentication";
+
+    private SecurityScheme createBearerScheme() {
+        return new SecurityScheme()
+                .type(SecurityScheme.Type.HTTP)
+                .scheme("bearer")
                 .bearerFormat("JWT")
-                .scheme("bearer");
+                .description("Provide the JWT token. Example: Bearer eyJhbGciOiJIUzI1...");
     }
 
     @Bean
-    public OpenAPI openAPI() {
+    public OpenAPI customOpenAPI() {
         return new OpenAPI()
-                .addSecurityItem(new SecurityRequirement().
-                        addList("Bearer Authentication"))
-                .components(new Components().addSecuritySchemes
-                        ("Bearer Authentication", createAPIKeyScheme()))
-                .info(new Info().title("User Service Application Endpoints")
-                        .description("Spring Integration API")
-                        .version("1.0").contact(new Contact().name("Code With Manuel Dev")
-                                .email( "isaachagan320@gmail.com").url("isaacdev.com"))
-                        .license(new License().name("License of API")
-                                .url("API license URL")));
+                .addSecurityItem(new SecurityRequirement().addList(SECURITY_SCHEME_NAME))
+                .components(new Components()
+                        .addSecuritySchemes(SECURITY_SCHEME_NAME, createBearerScheme()))
+                .info(new Info()
+                        .title("USER SERVICE API")
+                        .version("1.0")
+                        .description("This service handles the management of all user registration, login, and profile operations.")
+                        .contact(new Contact()
+                                .name("Isaac Hagan")
+                                .email("isaachagan320@gmail.com")
+                                .url("https://isaacdev.com"))
+                        .license(new License()
+                                .name("Apache 2.0")
+                                .url("http://springdoc.org")));
     }
 }

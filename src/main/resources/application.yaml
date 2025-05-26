@@ -44,3 +44,6 @@ security:
 
 
 spring.config.import: optional:file:.env[.properties]
+
+
+# http://localhost:8085/api/swagger-ui/index.html#/

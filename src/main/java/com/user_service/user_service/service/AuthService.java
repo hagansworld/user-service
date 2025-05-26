@@ -4,10 +4,7 @@ import com.user_service.user_service.dto.*;
 import com.user_service.user_service.entity.Role;
 import com.user_service.user_service.entity.User;
 import com.user_service.user_service.enums.UserRole;
-import com.user_service.user_service.exception.EmailAlreadyExistsException;
-import com.user_service.user_service.exception.NotFoundException;
-import com.user_service.user_service.exception.UserAlreadyExitsException;
-import com.user_service.user_service.exception.UserNotFoundException;
+import com.user_service.user_service.exception.*;
 import com.user_service.user_service.mapper.UserMapper;
 import com.user_service.user_service.repository.RoleRepository;
 import com.user_service.user_service.repository.UserRepository;
@@ -38,6 +35,7 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final UserMapper userMapper;
     private final JwtUtils jwtUtils;
+
 
 //comment
     /**
@@ -70,8 +68,10 @@ public class AuthService {
                 throw new UserAlreadyExitsException("User '" + requestRequestDto.getUsername() + " 'already exist");
             }
 
+
             // Convert registration DTO to User entity
             User user = userMapper.toUser(requestRequestDto);
+
 
             // Encode password
             user.setPassword(passwordEncoder.encode(user.getPassword()));
@@ -84,8 +84,8 @@ public class AuthService {
             // Assign default USER role
             Role userRole = roleRepository.findByRole(UserRole.USER)
                     .orElseThrow(() -> {
-                        log.error("Default user not found");
-                        return new NotFoundException("Default user not found");
+                        log.error("Default role not found");
+                        return new NotFoundException("Default role not found");
                     });
             // List all Roles that user has (Ex, ADMIN, MANAGER Etc)
             user.setRoles(Collections.singletonList(userRole));
@@ -130,12 +130,17 @@ public class AuthService {
        try {
            // Find user by email
            User user = userRepository.findByEmail(loginRequestDto.getEmail())
-                .orElseThrow(()-> new NotFoundException("User not found with email"+ loginRequestDto.getEmail()));
+                .orElseThrow(()-> new NotFoundException("User not found with email "+ loginRequestDto.getEmail()));
            log.info("Attempting login for user: {}", user.getEmail());
 
            // Check if the user's email is verified
            if (!user.isEnabled()){
-               throw new RuntimeException("Account not verified. Please verify your account ");
+               throw new NotFoundException("Account not verified. Please verify your account ");
+           }
+
+           if (!passwordEncoder.matches(loginRequestDto.getPassword(),user.getPassword() )){
+               log.info("Password >>>> {} ", loginRequestDto.getPassword());
+               throw new InvalidCredentialsException("Incorrect password. Please try again");
            }
 
            // Authenticate user credentials
@@ -159,7 +164,8 @@ public class AuthService {
                    request.getRequestURI()
            );
 
-       }catch (NotFoundException e){
+       }
+       catch (NotFoundException | InvalidCredentialsException e){
            throw  e;
        } catch (Exception e){
            log.error("An error occurred during sign in ");

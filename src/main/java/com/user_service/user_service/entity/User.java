@@ -50,7 +50,7 @@ public class User implements UserDetails {
     private LocalDateTime verificationCodeExpiresAt;
 
 
-    @ManyToMany(fetch = FetchType.LAZY)
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name ="user_roles",
             joinColumns = @JoinColumn(name = "user_id"),
@@ -67,8 +67,12 @@ public class User implements UserDetails {
 
     @Override
     public String getUsername(){
-        return username;
+//        return username;
+        return email;
     }
+
+
+
 
     @Override
     public String  getPassword(){

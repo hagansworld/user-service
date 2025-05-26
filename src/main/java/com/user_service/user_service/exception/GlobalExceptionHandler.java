@@ -69,6 +69,18 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse,HttpStatus.NOT_FOUND);
     }
 
+@ExceptionHandler(InvalidCredentialsException.class)
+    public ResponseEntity<ResponseDto>handleInvalidCredentialsException(InvalidCredentialsException ex, WebRequest request){
+        ResponseDto errorResponse = ResponseDto.builder()
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .message(ex.getMessage())
+                .timeRequested(LocalDateTime.now())
+                .build();
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
+
+    }
+
 
 
 

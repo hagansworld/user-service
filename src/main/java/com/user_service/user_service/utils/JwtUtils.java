@@ -1,5 +1,6 @@
 package com.user_service.user_service.utils;
 
+import com.user_service.user_service.entity.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
@@ -77,10 +78,16 @@ public class JwtUtils {
             UserDetails userDetails,
             long expiration
     ) {
+        // Cast userDetails to User to access the email field
+        String usernameOrEmail = userDetails.getUsername(); // Default to username if email is not available
+
+        User user = (User) userDetails;
+        usernameOrEmail = user.getEmail(); // Use email instead of username if it's a User object
+
         return Jwts
                 .builder()
                 .claims(extraClaims) // Set additional claims
-                .subject(userDetails.getUsername()) // Set the subject as the username
+                .subject(usernameOrEmail) // Set the subject as the email (or username)
                 .issuedAt(new Date(System.currentTimeMillis())) // Set the issued time to the current time
                 .expiration(new Date(System.currentTimeMillis() + expiration)) // Set the expiration time
                 .signWith(getSignInKey()) // Sign the token using the secret key (algorithm is inferred)
@@ -139,7 +146,4 @@ public class JwtUtils {
         byte[] keyBytes = Decoders.BASE64.decode(secretKey); // Decode the secret key from Base64 encoding
         return Keys.hmacShaKeyFor(keyBytes); // Return the HMAC signing key
     }
-
-
 }
-

@@ -3,8 +3,12 @@ package com.user_service.user_service.mapper;
 import com.user_service.user_service.dto.*;
 import com.user_service.user_service.entity.Role;
 import com.user_service.user_service.entity.User;
+import com.user_service.user_service.enums.UserRole;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
@@ -111,8 +115,8 @@ public class UserMapper {
                                 .collect(Collectors.toList())
                 )
                 .enabled(user.isEnabled())
-                .createdAt(user.getCreatedAt())
-                .updatedAt(user.getUpdatedAt())
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
                 .build();
 
     }
@@ -127,10 +131,35 @@ public class UserMapper {
                 .email(dto.getEmail())
                 .password(dto.getPassword())
                 .enabled(false)
-               .createdAt(dto.getCreatedAt())
-               .updatedAt(dto.getUpdatedAt())
                 .build();
     }
+
+    /**
+     * The RoleMapper class helps convert a list of role names
+     * (in the form of strings like "admin", "user", etc.)
+     * into a list of UserRole enum values
+     * (which are values defined in your UserRole enum, such as ADMIN, USER, etc.)
+     *
+     * @param roles - this holes list of roles in string
+     * @return returns userRoles in enum
+     */
+
+    public static List<UserRole> mapRoles(List<String>roles){
+        List<UserRole> userRoles = new ArrayList<>();
+
+        for(String role : roles){
+            try {
+                userRoles.add(UserRole.valueOf(role.toUpperCase()));
+            }catch (IllegalArgumentException e){
+                throw  new IllegalArgumentException("Invalid role: " + role);
+            }
+        }
+
+        return userRoles;
+    }
+
+
+
 
 
 }
