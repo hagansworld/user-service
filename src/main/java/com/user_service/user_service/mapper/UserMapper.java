@@ -32,9 +32,10 @@ public class UserMapper {
      * User to Login ResponseDto
      */
 
-    public LoginResponseDto toLoginResponseDto(User user ,String token){
+    public LoginResponseDto toLoginResponseDto(User user ,String token, String refreshToken){
         return LoginResponseDto.builder()
                 .token(token)
+                .refreshToken(refreshToken)
                 .id(user.getId())
                 .username(user.getUsername())
                 .email(user.getEmail())
@@ -112,7 +113,7 @@ public class UserMapper {
                         user.getRoles()
                                 .stream()
                                 .map(Role::getAuthority)
-                                .collect(Collectors.toList())
+                                .toList()
                 )
                 .enabled(user.isEnabled())
                 .createdAt(LocalDateTime.now())

@@ -1,6 +1,8 @@
 package com.user_service.user_service.security;
 
+import com.user_service.user_service.enums.UserRole;
 import lombok.RequiredArgsConstructor;
+import org.apache.catalina.Role;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -57,6 +59,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
+                .cors((AbstractHttpConfigurer::disable))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/auth/**",
@@ -65,7 +68,8 @@ public class SecurityConfig {
                                 "/swagger-ui.html"
                         )
                         .permitAll()
-                        .requestMatchers( "/users/**").hasRole("ADMIN") // Restrict access to ADMIN role
+                        .requestMatchers( "/users/**").hasAnyAuthority(UserRole.ADMIN.name(), UserRole.USER.name())
+                        .requestMatchers("/users/**").hasAuthority(UserRole.ADMIN.name())
                         .anyRequest()
                         .authenticated()
                 )

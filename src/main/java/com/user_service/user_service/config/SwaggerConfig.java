@@ -22,6 +22,9 @@ public class SwaggerConfig {
 
     private static final String SECURITY_SCHEME_NAME = "Bearer Authentication";
 
+    /**
+     * Create the security scheme for Bearer authentication.
+     */
     private SecurityScheme createBearerScheme() {
         return new SecurityScheme()
                 .type(SecurityScheme.Type.HTTP)
@@ -30,6 +33,9 @@ public class SwaggerConfig {
                 .description("Provide the JWT token. Example: Bearer eyJhbGciOiJIUzI1...");
     }
 
+    /**
+     * Configure the OpenAPI with JWT Bearer Authentication and general API metadata.
+     */
     @Bean
     public OpenAPI customOpenAPI() {
         return new OpenAPI()

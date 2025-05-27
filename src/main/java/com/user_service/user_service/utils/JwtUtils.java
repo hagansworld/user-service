@@ -1,23 +1,31 @@
 package com.user_service.user_service.utils;
 
-import com.user_service.user_service.entity.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 
 @Component
+/**
+ * This method is used for generating and validating tokens
+ */
+@RequiredArgsConstructor
 public class JwtUtils {
+    private final UserDetailsService userDetailsService;
 
     @Value("${security.jwt.secret-key}")
     private String secretKey;
@@ -25,6 +33,10 @@ public class JwtUtils {
     @Getter
     @Value("${security.jwt.expiration-time}")
     private long expirationTime;
+
+    @Getter
+    @Value("${security.jwt.refresh-token}")
+    private long refreshTokenExpirationTime;
 
     /**
      * Extracts the username (subject) from the JWT token.
@@ -78,16 +90,11 @@ public class JwtUtils {
             UserDetails userDetails,
             long expiration
     ) {
-        // Cast userDetails to User to access the email field
-        String usernameOrEmail = userDetails.getUsername(); // Default to username if email is not available
-
-        User user = (User) userDetails;
-        usernameOrEmail = user.getEmail(); // Use email instead of username if it's a User object
-
         return Jwts
                 .builder()
-                .claims(extraClaims) // Set additional claims
-                .subject(usernameOrEmail) // Set the subject as the email (or username)
+//                .claims(extraClaims) // Set additional claims
+                .claim("roles", userDetails.getAuthorities())
+                .subject(userDetails.getUsername()) // Set the subject as the username
                 .issuedAt(new Date(System.currentTimeMillis())) // Set the issued time to the current time
                 .expiration(new Date(System.currentTimeMillis() + expiration)) // Set the expiration time
                 .signWith(getSignInKey()) // Sign the token using the secret key (algorithm is inferred)
@@ -103,7 +110,7 @@ public class JwtUtils {
      */
     public boolean isTokenValid(String token, UserDetails userDetails) {
         final String username = extractUsername(token); // Extract the username from the token
-        return (username.equals(userDetails.getUsername())) && !isTokenExpired(token); // Check if the token is valid
+        return (username.equals(userDetails.getUsername())) && isTokenExpired(token); // Check if the token is valid
     }
 
     /**
@@ -112,7 +119,7 @@ public class JwtUtils {
      * @return true if the token has expired, false otherwise
      */
     private boolean isTokenExpired(String token) {
-        return extractExpiration(token).before(new Date()); // Compare the expiration date with the current date
+        return !extractExpiration(token).before(new Date()); // Compare the expiration date with the current date
     }
 
     /**
@@ -138,6 +145,8 @@ public class JwtUtils {
                 .getPayload(); // Return the payload (claims) of the token
     }
 
+
+
     /**
      * Retrieves the signing key used for signing and validating the JWT token.
      * @return the signing key
@@ -146,4 +155,83 @@ public class JwtUtils {
         byte[] keyBytes = Decoders.BASE64.decode(secretKey); // Decode the secret key from Base64 encoding
         return Keys.hmacShaKeyFor(keyBytes); // Return the HMAC signing key
     }
+
+
+    /**
+     * *******************************************
+     * Generate refresh token starts from here
+     * ********************************************
+     */
+
+
+    /**
+     * Generates a refresh JWT token for the given user.
+     * @param userDetails the details of the user
+     * @return the generated JWT token
+     */
+    public String generateRefreshToken(UserDetails userDetails) {
+        return generateRefreshToken(new HashMap<>(), userDetails); // Generate a refresh token without additional claims
+    }
+
+    /**
+     * Generates a refresh JWT token with additional claims for the given user.
+     * @param extraClaims additional claims to include in the token
+     * @param userDetails the details of the user
+     * @return the generated JWT token
+     */
+    public String generateRefreshToken(Map<String, Object> extraClaims, UserDetails userDetails) {
+        return generateRefreshToken(extraClaims, userDetails, refreshTokenExpirationTime); // Build and return the JWT refresh token with additional claims
+    }
+
+
+    /**
+     * Generates a refresh token for the given user with additional claims and expiration time.
+     * @param extraClaims additional claims to include in the token
+     * @param userDetails the details of the user
+     * @param refreshTokenExpirationTime the expiration time for the refresh token
+     * @return the generated refresh token
+     */
+
+    public String generateRefreshToken(Map<String, Object> extraClaims,
+                                  UserDetails userDetails,
+                                  long  refreshTokenExpirationTime){
+        return  Jwts
+                .builder()
+                .claim("roles", userDetails.getAuthorities())
+                .subject(userDetails.getUsername()) // Set the subject as the username
+                .issuedAt(new Date(System.currentTimeMillis())) // Set the issued time to the current time
+                .expiration(new Date(System.currentTimeMillis() + refreshTokenExpirationTime)) // Set the expiration time
+                .signWith(getSignInKey()) // Sign the token using the secret key (algorithm is inferred)
+                .compact(); // Return the compact (encoded) token
+
+    }
+
+
+    /**
+     * Extracts the username from the given token.
+     * @param token the JWT token
+     * @return the username (subject) extracted from the token
+     */
+    public String  getUserFromToken(String  token){
+        return  extractUsername(token);
+    }
+
+
+    /**
+     * Validates the given token by checking its expiration and matching username.
+     * @param token the JWT token
+     * @return true if the token is valid, false otherwise
+     */
+
+    public  Boolean validateToken(String token){
+        String username = extractUsername(token);
+        if (StringUtils.isNotEmpty(username) && isTokenExpired(token)){
+            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+            return isTokenValid(token,userDetails);  // Validate the token against user details
+        }
+        return false; // Return false if username is empty or token is expired
+    }
+
+
+
 }

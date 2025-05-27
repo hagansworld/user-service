@@ -67,6 +67,32 @@ public class AuthController {
         return ResponseEntity.status(responseDto.getStatusCode()).body(responseDto);
     }
 
+    @Operation(
+            summary = "Refresh Token",
+            description = "This endpoint allows the user to refresh their access token by providing a valid refresh token."
+    )
+    @PostMapping("/refresh")
+    public ResponseEntity<ResponseDto>refreshToken(@RequestParam("token") String refreshToken){
+        ResponseDto responseDto = authService.refreshToken(refreshToken);
+
+        return  ResponseEntity.status(responseDto.getStatusCode()).body(responseDto);
+    }
+
+
+
+    @Operation(
+            summary = "Validate Token",
+            description = "This endpoint validates a given JWT token and checks whether it is valid or expired."
+    )
+    @PostMapping("/validate")
+    public ResponseEntity<ResponseDto>validateToken(@RequestParam("token") String validateToken){
+
+        ResponseDto responseDto = authService.validateToken(validateToken);
+
+        return ResponseEntity.status(responseDto.getStatusCode()).body(responseDto);
+    }
+
+
 
 }
 

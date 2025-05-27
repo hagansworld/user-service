@@ -10,6 +10,8 @@ import com.user_service.user_service.repository.RoleRepository;
 import com.user_service.user_service.repository.UserRepository;
 import com.user_service.user_service.response.ApiResponse;
 import com.user_service.user_service.utils.JwtUtils;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.MalformedJwtException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,10 +21,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
+import java.security.SignatureException;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.Optional;
-import java.util.Random;
 
 @Service
 @RequiredArgsConstructor
@@ -128,34 +130,37 @@ public class AuthService {
      */
     public ResponseDto loginUser (LoginRequestDto loginRequestDto, HttpServletRequest request){
        try {
-           // Find user by email
-           User user = userRepository.findByEmail(loginRequestDto.getEmail())
-                .orElseThrow(()-> new NotFoundException("User not found with email "+ loginRequestDto.getEmail()));
-           log.info("Attempting login for user: {}", user.getEmail());
+           // Find user by username
+           User user = userRepository.findByUsername(loginRequestDto.getUsername())
+                .orElseThrow(()-> new NotFoundException("User not found with  username "+ loginRequestDto.getUsername()));
+           log.info("Attempting login for user: {}", user.getUsername());
 
            // Check if the user's email is verified
            if (!user.isEnabled()){
                throw new NotFoundException("Account not verified. Please verify your account ");
            }
 
-           if (!passwordEncoder.matches(loginRequestDto.getPassword(),user.getPassword() )){
-               log.info("Password >>>> {} ", loginRequestDto.getPassword());
+              // Validate password
+           if (!passwordEncoder.matches(loginRequestDto.getPassword(), user.getPassword() )){
                throw new InvalidCredentialsException("Incorrect password. Please try again");
            }
 
            // Authenticate user credentials
            authenticationManager.authenticate(
                    new UsernamePasswordAuthenticationToken(
-                   loginRequestDto.getEmail(),
+                   loginRequestDto.getUsername(),
                            loginRequestDto.getPassword()
                    )
            );
 
            // Generate JWT token
-           String token = jwtUtils.generateToken(user);
+           var token = jwtUtils.generateToken(user);
+
+           // Generate a refresh token
+           var refresh  = jwtUtils.generateRefreshToken(user);
 
            // Build response DTO
-           LoginResponseDto loginResponseDto = userMapper.toLoginResponseDto(user, token);
+           LoginResponseDto loginResponseDto = userMapper.toLoginResponseDto(user, token, refresh);
 
            return ApiResponse.buildResponse(
                     loginResponseDto,
@@ -168,7 +173,7 @@ public class AuthService {
        catch (NotFoundException | InvalidCredentialsException e){
            throw  e;
        } catch (Exception e){
-           log.error("An error occurred during sign in ");
+           log.error("An error occurred during login for user: {}", loginRequestDto.getUsername(), e);
            throw new RuntimeException("An error occurred during login",e);
        }
 
@@ -309,6 +314,81 @@ public class AuthService {
        }
     }
 
+
+    /**
+     * @param refreshToken
+     * @return
+     */
+    public ResponseDto refreshToken(String refreshToken){
+        // Find the user from the refresh token
+
+        User user = userRepository.findByUsername(jwtUtils.getUserFromToken(refreshToken))
+                .orElseThrow( () -> new IllegalArgumentException("Invalid refresh token"));
+
+        // Generate a new JWT token
+        String jwtToken = jwtUtils.generateToken(user);
+
+        // Generate a new refresh token
+        String newRefreshToken = jwtUtils.generateRefreshToken(user);
+
+        GeneratedTokenResponse tokenResponse = new GeneratedTokenResponse(jwtToken,newRefreshToken);
+
+
+        return ApiResponse.buildResponse(
+                tokenResponse,
+                200,
+                "Token refreshed successfully",
+                null
+        );
+
+    }
+
+
+//    /**
+//     *
+//     * @param token
+//     * @return
+//     */
+//    public Boolean validateToken(String token) {
+//        try {
+//            return jwtUtils.validateToken(token);
+//        } catch (ExpiredJwtException e) {
+//            log.error("Token has expired: {}", e.getMessage());
+//            throw  e;
+//        } catch (MalformedJwtException e) {
+//            log.error("Malformed token: {}", e.getMessage());
+//            throw  e;
+//        } catch (Exception e) {
+//            log.error("An error occurred during token validation: {}", e.getMessage());
+//            throw  e;
+//        }
+//    }
+
+    public ResponseDto validateToken(String token){
+
+        try {
+            boolean isValid = jwtUtils.validateToken(token);
+            if (isValid) {
+                return ApiResponse.buildResponse(
+                        "Token is valid",
+                        200,
+                        "Token is successfully validated",
+                        null
+                );
+            } else {
+                return ApiResponse.buildResponse(
+                        "Invalid token",
+                        401,
+                        "The provided token is invalid or expired",
+                        null
+                );
+            }
+        }catch (Exception e){
+            throw new RuntimeException("An error occurred during validating the token");
+        }
+    }
+
+
     /**
      * Sends a styled HTML email to the user containing their account verification code.
      *   Builds a mobile-friendly HTML email with the code
@@ -384,4 +464,6 @@ public class AuthService {
         int code = secureRandom.nextInt(900000) + 100000;
         return String.valueOf(code);
     }
+
+
 }
