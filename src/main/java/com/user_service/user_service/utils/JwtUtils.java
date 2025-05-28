@@ -93,7 +93,8 @@ public class JwtUtils {
         return Jwts
                 .builder()
 //                .claims(extraClaims) // Set additional claims
-                .claim("roles", userDetails.getAuthorities())
+//                .claim("roles", userDetails.getAuthorities())
+                .claims(extraClaims)
                 .subject(userDetails.getUsername()) // Set the subject as the username
                 .issuedAt(new Date(System.currentTimeMillis())) // Set the issued time to the current time
                 .expiration(new Date(System.currentTimeMillis() + expiration)) // Set the expiration time
@@ -197,7 +198,8 @@ public class JwtUtils {
                                   long  refreshTokenExpirationTime){
         return  Jwts
                 .builder()
-                .claim("roles", userDetails.getAuthorities())
+//                .claim("roles", userDetails.getAuthorities())
+                .claims(extraClaims)
                 .subject(userDetails.getUsername()) // Set the subject as the username
                 .issuedAt(new Date(System.currentTimeMillis())) // Set the issued time to the current time
                 .expiration(new Date(System.currentTimeMillis() + refreshTokenExpirationTime)) // Set the expiration time
