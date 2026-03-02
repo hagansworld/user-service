@@ -74,7 +74,6 @@ public class AuthService {
             // Convert registration DTO to User entity
             User user = userMapper.toUser(requestRequestDto);
 
-
             // Encode password
             user.setPassword(passwordEncoder.encode(user.getPassword()));
 

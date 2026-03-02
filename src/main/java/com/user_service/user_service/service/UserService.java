@@ -224,6 +224,8 @@ public class UserService {
                 user.setUsername(userRequestDto.getUsername());
             }
 
+
+
             // Update email if present
             if (userRequestDto.getEmail() != null) {
                 user.setEmail(userRequestDto.getEmail());
