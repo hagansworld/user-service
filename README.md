@@ -1,0 +1,1 @@
+A User Service microservice built with Spring Boot that handles all user-related operations including registration with email verification, JWT-based authentication and refresh tokens, token validation, and full CRUD user management with role assignment. Designed to work as part of a larger microservices architecture.
